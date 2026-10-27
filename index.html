@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>La feria de los sistemas</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 system-ui,Arial,sans-serif;background:#eef3fa;color:#1b2a41}
+header{background:linear-gradient(135deg,#0b3d91,#1e88e5);color:#fff;padding:18px 12px;text-align:center}
+.badge{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;letter-spacing:.3px}
+h1{margin:10px 0 4px;font-size:26px}header p{margin:0}
+nav{background:#1c2430;display:flex;overflow-x:auto;position:sticky;top:0;z-index:5}
+nav button{flex:1;min-width:125px;background:none;border:0;color:#cbd5e1;padding:12px 8px;font-size:14px;font-weight:700;cursor:pointer;min-height:50px}
+nav button.on{background:#1e88e5;color:#fff}
+.stats{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:8px;background:#fff;border-bottom:1px solid #d5deea;font-size:13px}
+.stats span{background:#eef3fa;border-radius:10px;padding:4px 10px}
+main{max-width:900px;margin:0 auto;padding:8px 12px 30px}
+.card{background:#fff;border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 2px 8px #0002}
+h2,h3,h4{margin:.4em 0}
+.b{border-radius:12px;padding:10px 12px;margin:10px 0;border-left:6px solid}
+.info{background:#e3f2fd;border-color:#1e88e5}.ok{background:#e6f6ea;border-color:#2e9e4f}
+.hint{background:#fff8d6;border-color:#f2b800}.err{background:#fdeaea;border-color:#d94a4a}
+.btn{min-height:48px;padding:10px 16px;border:0;border-radius:12px;background:#1e88e5;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin:4px 4px 4px 0}
+.btn.or{background:#f57c00}.btn.gr{background:#e2e8f0;color:#1b2a41}.btn.on{background:#0b3d91;color:#fff}.btn:disabled{opacity:.5;cursor:default}
+.opt{display:block;width:100%;text-align:left;background:#f5f8fd;border:2px solid #c5d3e6;border-radius:12px;padding:10px 14px;margin:8px 0;font-size:17px;cursor:pointer;min-height:56px;font-family:Consolas,monospace}
+.opt:disabled{opacity:.6}
+.sys{font:700 18px Consolas,monospace;background:#f5f8fd;border-radius:10px;padding:8px 12px;margin:6px 0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:6px;background:#f5f8fd;border-radius:10px;padding:6px 10px;margin:6px 0}
+.mini{width:44px;height:44px;border:0;border-radius:10px;background:#1e88e5;color:#fff;font-size:16px;cursor:pointer;margin-left:4px}
+input.n{width:90px;font-size:20px;padding:8px;border:2px solid #c5d3e6;border-radius:10px;margin:0 8px 0 4px}
+.iv{display:grid;grid-template-columns:1.4fr 1fr;gap:12px}@media(max-width:760px){.iv{grid-template-columns:1fr}}
+svg{width:100%;height:auto;background:#fff;border:1px solid #c5d3e6;border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid #c5d3e6;padding:4px;text-align:center}
+details{background:#f5f8fd;border-radius:10px;padding:6px 10px;margin:6px 0}
+.step{animation:f .3s}@keyframes f{from{opacity:0}to{opacity:1}}
+.sel{border-color:#f57c00;background:#fff3e0}.vit{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}@media(max-width:760px){.vit{grid-template-columns:1fr}}.vt{border:3px dashed #90a4c0;border-radius:12px;padding:8px;min-height:90px;cursor:pointer;background:#f5f8fd}textarea{width:100%;font:16px system-ui,Arial,sans-serif;border:2px solid #c5d3e6;border-radius:10px;padding:8px}
+</style></head><body>
+<header><span class="badge">CNEB 3.° SECUNDARIA • RESUELVE PROBLEMAS DE REGULARIDAD, EQUIVALENCIA Y CAMBIO</span>
+<h1>La feria de los sistemas</h1><p>Plantea y resuelve sistemas de ecuaciones 2×2 con situaciones del Valle del Mantaro</p></header>
+<nav id="nv"></nav><div class="stats" id="st"></div>
+<main>
+<section id="t0"></section><section id="t1" hidden></section><section id="t2" hidden></section><section id="t3" hidden></section><section id="t4" hidden></section><section id="t5" hidden></section><section id="t6" hidden></section>
+</main>
+<script>
+const $=id=>document.getElementById(id),S={first:0,hint:0,extra:0};
+const bx=(t,m)=>`<div class="b ${t}"><b>${{ok:'✅ ',err:'❌ ',hint:'💡 ',info:'ℹ️ '}[t]}</b>${m}</div>`;
+const Q=()=>({e:0,h:0,d:false});
+function stats(){$('st').innerHTML=`<span>🥇 Acierto al primer intento: <b>${S.first}</b></span><span>💡 Con uso de pista: <b>${S.hint}</b></span><span>🔁 Intentos adicionales: <b>${S.extra}</b></span>`}
+function good(q){if(q.d)return;q.d=true;if(q.h)S.hint++;else if(!q.e)S.first++;stats()}
+function bad(q){q.e++;S.extra++;stats()}
+const TN=[[0,'Reto & Ejemplo'],[1,'Nivel 1: Plantear el sistema'],[2,'Nivel 2: Elegir método y resolver'],[4,'Clasificar métodos'],[3,'Modo Investigar'],[5,'Comparar y Explicar'],[6,'Reto Final']];
+$('nv').innerHTML=TN.map(([i,t])=>`<button onclick="go(${i})" data-i="${i}">${t}</button>`).join('');
+function go(n){for(let i=0;i<7;i++)$('t'+i).hidden=i!=n;[...$('nv').children].forEach(b=>b.className=b.dataset.i==n?'on':'');scrollTo(0,0)}
+
+/* ---------- Pestaña 1 ---------- */
+const EJ=['<b>Incógnitas:</b> p = precio del kg de papa (S/); q = precio del kg de queso fresco (S/).','<b>Sistema:</b> 2p + q = 18 y p + q = 15.','<b>Método elegido: reducción.</b> Restamos las ecuaciones: (2p + q) − (p + q) = 18 − 15.','Al restar, 2p − p = p y q − q = 0; por tanto <b>p = 3</b>.','Reemplazamos en p + q = 15: 3 + q = 15, luego <b>q = 12</b>.','<b>Verificación:</b> 2(3) + 12 = 18 ✔ y 3 + 12 = 15 ✔.','<b>Interpretación:</b> la papa cuesta S/ 3 el kg y el queso fresco S/ 12 el kg.'];
+let ej=1;
+function r0(){$('t0').innerHTML=`<div class="card"><h2>🎪 Desafío del organizador de la feria</h2>
+<p>En la Feria Dominical de Huancayo y en el transporte desde Chupaca debes <b>plantear, resolver, interpretar y justificar</b> sistemas de ecuaciones.</p>
+${bx('info','<b>Paso 1:</b> Plantea las ecuaciones.<br><b>Paso 2:</b> Elige el método y resuelve.<br><b>Paso 3:</b> Verifica e interpreta en el contexto.')}</div>
+<div class="card"><h3>📘 Ejemplo guiado</h3><p>“2 kg de papa y 1 kg de queso fresco cuestan S/ 18; 1 kg de papa y 1 kg de queso fresco cuestan S/ 15.”</p>
+${EJ.slice(0,ej).map((e,i)=>`<div class="b ${i==EJ.length-1?'ok':'info'} step">${i+1}. ${e}</div>`).join('')}
+<button class="btn" onclick="ej++;r0()" ${ej>=EJ.length?'disabled':''}>Ver siguiente paso</button><br>
+<button class="btn or" onclick="go(1)">Iniciar Nivel 1</button></div>`}
+
+/* ---------- Nivel 1 ---------- */
+const L1=[
+{t:'En la Feria Dominical: 3 kg de habas y 2 kg de choclo cuestan S/ 21; 1 kg de habas y 2 kg de choclo cuestan S/ 11.',
+o:[['3h + 2c = 21','h + 2c = 11',1,''],['2h + 3c = 21','2h + c = 11',0,'Intercambiaste los coeficientes: los 3 kg son de habas (h) y los 2 kg de choclo (c), no al revés.'],['3h + 2c = 21','3h + 2c = 11',0,'Repetiste la primera compra con otro total. En la segunda compra solo hay 1 kg de habas.'],['3h + 2c = 21','h + c = 11',0,'Ecuación incompleta: en la segunda compra también hay 2 kg de choclo, no 1 kg.']],
+hs:['Identifica las dos cantidades desconocidas: el precio de 1 kg de cada producto.','Cada ecuación es una compra: (kg de habas)·h + (kg de choclo)·c = total pagado.'],
+v:'h = precio del kg de habas (S/); c = precio del kg de choclo (S/).',
+ex:'Restando las ecuaciones: 2h = 10, luego h = 5; en h + 2c = 11: 5 + 2c = 11, c = 3. Habas: S/ 5 el kg; choclo: S/ 3 el kg.'},
+{t:'En un puesto de truchas hay 12 clientes entre adultos y niños. Cada adulto paga S/ 10 y cada niño S/ 6; en total se recaudó S/ 88.',
+o:[['a + n = 12','10a + 6n = 88',1,''],['a + n = 12','6a + 10n = 88',0,'Intercambiaste los precios: el adulto paga S/ 10 (10a) y el niño S/ 6 (6n).'],['a + n = 88','10a + 6n = 12',0,'Intercambiaste los totales: 12 es el número de clientes y 88 el dinero recaudado.'],['a + n = 12','10a = 88',0,'Ecuación incompleta: en la recaudación también pagan los niños (6n).']],
+hs:['Hay dos ecuaciones: una cuenta personas y otra cuenta dinero.','Dinero = (precio adulto)·a + (precio niño)·n.'],
+v:'a = número de adultos; n = número de niños.',
+ex:'De a + n = 12 se tiene n = 12 − a. En 10a + 6(12 − a) = 88: 4a + 72 = 88, a = 4 y n = 8. Fueron 4 adultos y 8 niños.'},
+{t:'Don Julio vende 25 sacos entre papa amarilla y papa huayro; vendió 7 sacos más de amarilla que de huayro.',
+o:[['x + y = 25','x − y = 7',1,''],['x + y = 25','x + y = 7',0,'Usaste suma en lugar de diferencia: “7 sacos más de amarilla” se expresa con x − y = 7.'],['x + y = 25','y − x = 7',0,'Invertiste la diferencia: la mayor cantidad es la amarilla (x), así que se resta x − y.'],['x + y = 25','x = 7',0,'Ecuación incompleta: 7 es la diferencia entre x e y, no el valor de x.']],
+hs:['“7 sacos más” indica una diferencia entre las dos cantidades.','Asigna x a la papa amarilla (la mayor) y y a la huayro.'],
+v:'x = sacos de papa amarilla; y = sacos de papa huayro.',
+ex:'Sumando las ecuaciones: 2x = 32, x = 16; luego y = 25 − 16 = 9. Vendió 16 sacos de amarilla y 9 de huayro.'}];
+const P1=[[2,0,3,1],[1,3,0,2],[3,1,2,0]];
+let c1=0;const T1=L1.map(()=>({q:Q(),fb:'',hi:0,pr:false,d:false}));
+function r1(){const s=L1[c1],t=T1[c1];
+$('t1').innerHTML=`<div class="card"><h3>Situación ${c1+1} de 3</h3>${bx('info','Lee la situación y elige el sistema que la modela.')}<p><b>${s.t}</b></p>
+${P1[c1].map(k=>`<button class="opt" ${t.d?'disabled':''} onclick="pick(${k})">${s.o[k][0]}<br>${s.o[k][1]}</button>`).join('')}
+${t.hi?bx('hint',s.hs.slice(0,t.hi).join('<br>')):''}${t.fb}${t.pr?bx('info','<b>Procedimiento correcto:</b> '+s.ex):''}
+<button class="btn gr" onclick="t=T1[c1];t.hi=Math.min(t.hi+1,2);t.q.h=1;r1()" ${t.d?'disabled':''}>💡 Pedir pista</button>
+${t.d?(c1<2?'<button class="btn" onclick="c1++;r1()">Siguiente situación ▶</button>':'<button class="btn or" onclick="go(2)">Avanzar al Nivel 2</button>'):''}</div>`}
+function pick(k){const s=L1[c1],t=T1[c1],o=s.o[k];if(t.d)return;
+if(o[2]){good(t.q);t.d=true;t.fb=bx('ok',`¡Correcto! Cada ecuación une cantidades con su total, sin mezclar los datos de cada compra.<br><b>Incógnitas:</b> ${s.v}`)+bx('info','<b>Solución:</b> '+s.ex)}
+else{bad(t.q);if(t.q.e>=2){t.d=true;const c=s.o.find(z=>z[2]);t.fb=bx('err',o[3]+' Agotaste tus 2 intentos.')+bx('ok',`<b>Respuesta correcta:</b> ${c[0]} ; ${c[1]}<br><b>Incógnitas:</b> ${s.v}`)+bx('info','<b>Explicación:</b> '+s.ex)}else t.fb=bx('err',o[3]+' Te queda 1 intento.<br><button class="btn gr" onclick="T1[c1].pr=true;r1()">Ver el procedimiento correcto</button>')}r1()}
+
+/* ---------- Nivel 2 ---------- */
+const L2=[
+{e:['y = 2x','x + y = 9'],rec:'s',why:'la primera ecuación ya tiene y despejada: solo hay que reemplazarla en la otra.',steps:['Reemplazar y = 2x en x + y = 9: x + 2x = 9','Reducir términos: 3x = 9','Despejar: x = 3','Calcular y = 2(3) = 6','Verificar en ambas ecuaciones'],P:[2,0,4,1,3],x:3,y:6,q:[(x,y)=>[y,2*x],(x,y)=>[x+y,9]]},
+{e:['y = 3x − 2','y = x + 4'],rec:'i',why:'las dos ecuaciones tienen y despejada: se pueden igualar directamente.',steps:['Igualar las expresiones de y: 3x − 2 = x + 4','Agrupar términos con x: 2x = 6','Despejar: x = 3','Calcular y = 3 + 4 = 7','Verificar en ambas ecuaciones'],P:[3,1,4,0,2],x:3,y:7,q:[(x,y)=>[y,3*x-2],(x,y)=>[y,x+4]]},
+{e:['x + y = 10','x − y = 2'],rec:'r',why:'los coeficientes de y son opuestos (+1 y −1): al sumar se elimina y.',steps:['Sumar las ecuaciones: (x + y) + (x − y) = 10 + 2','Reducir: 2x = 12','Despejar: x = 6','Reemplazar en x + y = 10: 6 + y = 10, y = 4','Verificar en ambas ecuaciones'],P:[1,3,0,4,2],x:6,y:4,q:[(x,y)=>[x+y,10],(x,y)=>[x-y,2]]},
+{e:['2x + 3y = 12','3x − y = 7'],rec:'r',why:'al multiplicar la 2.ª ecuación por 3 aparecen −3y y +3y, que se eliminan al sumar (también podrías despejar y = 3x − 7 y sustituir).',steps:['Multiplicar la 2.ª ecuación por 3: 9x − 3y = 21','Sumar con la 1.ª: 11x = 33','Despejar: x = 3','Reemplazar en 3x − y = 7: 9 − y = 7, y = 2','Verificar en ambas ecuaciones'],P:[2,4,1,0,3],x:3,y:2,q:[(x,y)=>[2*x+3*y,12],(x,y)=>[3*x-y,7]]}];
+const MN={s:'Sustitución',i:'Igualación',r:'Reducción'};
+const H2=[['Mira si alguna incógnita ya está despejada en una ecuación.','Si una incógnita tiene coeficientes iguales u opuestos, piensa en eliminarla sumando o restando.'],['Primero se consigue una ecuación con una sola incógnita; la otra incógnita se calcula después.','La verificación siempre cierra el procedimiento.'],['Despeja primero la incógnita que queda sola y luego reemplaza.','Comprueba tus valores en AMBAS ecuaciones antes de responder.']];
+const HS=[['Como y = 2x, reemplaza y en la otra ecuación.','Queda x + 2x = 9, es decir 3x = 9.','Despeja x y luego calcula y = 2x.'],['Iguala las dos expresiones de y.','Queda 3x − 2 = x + 4, es decir 2x = 6.','Con el valor de x, calcula y = x + 4.'],['Los coeficientes de y son +1 y −1: suma las ecuaciones.','Al sumar queda 2x = 12.','Con el valor de x, usa x + y = 10 para hallar y.'],['Multiplica la 2.ª ecuación por 3 para poder eliminar y.','Al sumar con la 1.ª queda 11x = 33.','Con el valor de x, reemplaza en 3x − y = 7.']];
+let c2=0;const T2=L2.map(s=>({st:0,m:null,o:[...s.P],q:[Q(),Q(),Q()],hi:[0,0,0],fb:['','',''],vx:'',vy:'',pr:false}));
+const ev=(s,x,y)=>s.q.map((f,i)=>{const[l,r]=f(x,y);return `Ecuación ${i+1} (${s.e[i]}): izquierda = ${l}, derecha = ${r} ${l==r?'✔ cumple':'✘ no cumple'}`}).join('<br>');
+const hb=(t,k)=>(t.hi[k]?bx('hint',(k==2?HS[c2]:H2[k]).slice(0,t.hi[k]).join('<br>')):'')+t.fb[k]+(k==1&&t.pr?bx('info','<b>Orden correcto:</b><br>'+L2[c2].steps.map((x,i)=>(i+1)+'. '+x).join('<br>')):'');
+function r2(){const s=L2[c2],t=T2[c2];let h=`<div class="card"><h3>Sistema ${c2+1} de 4</h3><div class="sys">${s.e.map((q,i)=>`<div>(${i+1}) ${q}</div>`).join('')}</div>
+<h4>a) Elige el método</h4>${['s','i','r'].map(k=>`<button class="btn ${t.m==k?'on':'gr'}" ${t.st>0?'disabled':''} onclick="T2[c2].m='${k}';r2()">${MN[k]}</button>`).join('')}${hb(t,0)}`;
+if(t.st>=1)h+=`<h4>b) Ordena los pasos (${MN[s.rec]})</h4>${t.o.map((k,j)=>`<div class="row"><span>${j+1}. ${s.steps[k]}</span><span><button class="mini" aria-label="subir" ${t.st>1?'disabled':''} onclick="mv(${j},-1)">▲</button><button class="mini" aria-label="bajar" ${t.st>1?'disabled':''} onclick="mv(${j},1)">▼</button></span></div>`).join('')}${hb(t,1)}`;
+if(t.st>=2)h+=`<h4>c) Escribe la solución</h4><label>x = <input class="n" inputmode="numeric" value="${t.vx}" ${t.st>2?'disabled':''} oninput="T2[c2].vx=this.value"></label><label>y = <input class="n" inputmode="numeric" value="${t.vy}" ${t.st>2?'disabled':''} oninput="T2[c2].vy=this.value"></label>${hb(t,2)}`;
+h+=`<div><button class="btn gr" onclick="c2--;r2()" ${c2==0?'disabled':''}>◀ Anterior</button><button class="btn" onclick="chk()" ${t.st>2?'disabled':''}>Comprobar</button><button class="btn gr" onclick="c2++;r2()" ${c2==3?'disabled':''}>Siguiente ▶</button><button class="btn gr" onclick="T2[c2].hi[T2[c2].st]=Math.min(T2[c2].st==2?3:2,T2[c2].hi[T2[c2].st]+1);T2[c2].q[T2[c2].st].h=1;r2()" ${t.st>2?'disabled':''}>💡 Pedir pista</button></div></div>`;
+if(T2.every(x=>x.st>2)){const n=['elegir el método','ordenar los pasos del procedimiento','calcular y verificar x e y'],w=[0,1,2].filter(k=>T2.some(x=>x.q[k].e||x.q[k].h));
+h+=`<div class="card"><h3>📊 Resumen de desempeño</h3><p>🥇 Primer intento: <b>${S.first}</b> · 💡 Con pista: <b>${S.hint}</b> · 🔁 Intentos adicionales: <b>${S.extra}</b></p>${w.length?bx('hint','Conviene repasar: '+w.map(k=>n[k]).join(', ')+'.'):bx('ok','¡Excelente dominio! Pasa al Modo Investigar para interpretar las gráficas.')}<button class="btn or" onclick="go(3)">Ir al Modo Investigar</button></div>`}
+$('t2').innerHTML=h}
+function mv(j,d){const o=T2[c2].o,k=j+d;if(k<0||k>4)return;[o[j],o[k]]=[o[k],o[j]];r2()}
+function chk(){const s=L2[c2],t=T2[c2],k=t.st,q=t.q[k];
+if(k==0){if(!t.m){t.fb[0]=bx('err','Elige un método antes de comprobar.');return r2()}good(q);t.st=1;
+t.fb[0]=bx('ok',t.m==s.rec?`¡Muy bien! ${MN[t.m]} es el más conveniente porque ${s.why}`:`${MN[t.m]} también es un método válido, pero el más conveniente es ${MN[s.rec]} porque ${s.why} Ordenaremos los pasos con ese método.`)}
+else if(k==1){const i=t.o.findIndex((v,j)=>v!=j);
+if(i<0){good(q);t.st=2;t.fb[1]=bx('ok','¡Orden correcto! Primero se obtiene una ecuación con una incógnita, se resuelve, se calcula la otra y al final se verifica.')}
+else{bad(q);t.fb[1]=bx('err',`El paso «${s.steps[t.o[i]]}» no puede ir en la posición ${i+1}: depende de cálculos que aún no se hicieron o ya no corresponde ahí. Reordena e inténtalo otra vez.<br><button class="btn gr" onclick="T2[c2].pr=true;r2()">Ver el orden correcto</button>`)}}
+else{if(t.vx===''||t.vy==='')return(t.fb[2]=bx('err','Escribe los valores de x e y.'),r2());const x=Number(t.vx),y=Number(t.vy);
+if(x==s.x&&y==s.y){good(q);t.st=3;t.fb[2]=bx('ok',`¡Correcto! (x, y) = (${x}, ${y}) hace verdaderas las dos ecuaciones a la vez:<br>${ev(s,x,y)}`)}
+else{bad(q);const ok=s.q.map(f=>{const[l,r]=f(x,y);return l==r}),m=(x==s.x&&y!=s.y)?`x está bien (x = ${x}). Reemplaza x en una de las ecuaciones y despeja y con cuidado.`:(y==s.y&&x!=s.x)?`y está bien (y = ${y}). Reemplaza y en una de las ecuaciones y despeja x.`:((x==-s.x&&x!=0)||(y==-s.y&&y!=0))?'Uno de tus valores es el opuesto del correcto: revisa los signos al restar o despejar.':(x==s.y&&y==s.x)?'Parece que intercambiaste los valores de x e y.':(ok[0]!=ok[1])?`Tu par cumple solo la ecuación ${ok[0]?1:2}; no cumple la ecuación ${ok[0]?2:1} (${s.e[ok[0]?1:0]}).`:'Ese par no cumple ninguna de las ecuaciones. Pide una pista.';
+t.fb[2]=bx('err',`${m}<br>${ev(s,x,y)}<br><button class="btn gr" onclick="T2[c2].vx='';T2[c2].vy='';T2[c2].fb[2]='';r2()">🔄 Reintentar</button>`)}}
+r2()}
+
+/* ---------- Modo Investigar ---------- */
+const NX={one:'Las rectas se cortan en un solo punto: ese par (x, y) cumple ambas ecuaciones.',none:'Las rectas son paralelas (misma pendiente y distinto corte con el eje y): nunca se cruzan, no hay solución.',inf:'Las dos ecuaciones representan la misma recta (la segunda es el doble de la primera): todos sus puntos son soluciones.'};
+const IV=[{c:'(i)',e:['y = x + 1','y = −x + 5'],m:[[1,1],[-1,5]],s:[2,3],n:'one',w:[-1,8,-1,9]},
+{c:'(ii)',e:['y = 2x − 1','y = x + 2'],m:[[2,-1],[1,2]],s:[3,5],n:'one',w:[-1,8,-2,10]},
+{c:'(iii)',e:['y = 2x + 1','y = 2x − 3'],m:[[2,1],[2,-3]],s:null,n:'none',w:[-1,6,-4,12]},
+{c:'(iv)',e:['x + y = 4','2x + 2y = 8'],m:[[-1,4],[-1,4]],s:null,n:'inf',w:[-1,6,-2,6]},
+{c:'(v)',e:['y = 2x + 4','y = x + 10'],m:[[2,4],[1,10]],s:[6,16],n:'one',w:[-1,10,-2,22],t:'Un transportista de Chupaca cobra S/ 4 fijos más S/ 2 por kg; otro cobra S/ 10 fijos más S/ 1 por kg. (x = kg de carga, y = costo en S/)'}];
+const TL=[['g1','Graficar recta 1'],['g2','Graficar recta 2'],['tb','Ver tabla de valores'],['pt','Marcar punto de intersección'],['vf','Verificar en las ecuaciones']];
+const Q2=[['Con 6 kg de carga ambos transportistas cobran lo mismo: S/ 16.',1,''],['El primer transportista cobra S/ 6 por kg y el segundo S/ 16.',0,'Confundes las coordenadas con las tarifas: x representa los kg y y el costo en soles.'],['El segundo transportista siempre es más barato.',0,'Compara con 1 kg: S/ 6 contra S/ 11; el primero resulta más barato para cargas pequeñas. Con 10 kg: S/ 24 contra S/ 20.'],['Hay 6 transportistas y 16 kg de carga.',0,'x e y no cuentan transportistas: x = kg de carga y y = costo en soles.']];
+let iv=0,tl={},an={};
+function sv(){const d=IV[iv],[x0,x1,y0,y1]=d.w,W=560,H=400,p=38,X=x=>p+(x-x0)/(x1-x0)*(W-2*p),Y=y=>H-p-(y-y0)/(y1-y0)*(H-2*p),sx=Math.ceil((x1-x0)/10),sy=Math.ceil((y1-y0)/10);let g='';
+for(let x=Math.ceil(x0/sx)*sx;x<=x1;x+=sx)g+=`<line x1="${X(x)}" y1="${Y(y0)}" x2="${X(x)}" y2="${Y(y1)}" stroke="#d5deea"/><text x="${X(x)}" y="${H-p+16}" text-anchor="middle" font-size="12">${x}</text>`;
+for(let y=Math.ceil(y0/sy)*sy;y<=y1;y+=sy)g+=`<line x1="${X(x0)}" y1="${Y(y)}" x2="${X(x1)}" y2="${Y(y)}" stroke="#d5deea"/><text x="${p-6}" y="${Y(y)+4}" text-anchor="end" font-size="12">${y}</text>`;
+g+=`<line x1="${X(0)}" y1="${Y(y0)}" x2="${X(0)}" y2="${Y(y1)}" stroke="#1b2a41" stroke-width="2"/><line x1="${X(x0)}" y1="${Y(0)}" x2="${X(x1)}" y2="${Y(0)}" stroke="#1b2a41" stroke-width="2"/><text x="${W-p+4}" y="${Y(0)-6}" font-weight="700">x</text><text x="${X(0)+6}" y="${p-8}" font-weight="700">y</text>`;
+const cl=['#1565c0','#e65100'];g+=`<clipPath id="cp"><rect x="${p}" y="${p}" width="${W-2*p}" height="${H-2*p}"/></clipPath><g clip-path="url(#cp)">`;
+d.m.forEach(([m,b],j)=>{if(tl['g'+(j+1)])g+=`<line x1="${X(x0)}" y1="${Y(m*x0+b)}" x2="${X(x1)}" y2="${Y(m*x1+b)}" stroke="${cl[j]}" stroke-width="${j?3:5}" ${j?'stroke-dasharray="8 6"':''}/>`});g+='</g>';
+if(tl.pt&&tl.g1&&tl.g2&&d.s)g+=`<circle cx="${X(d.s[0])}" cy="${Y(d.s[1])}" r="7" fill="#2e9e4f" stroke="#fff" stroke-width="2"/><text x="${X(d.s[0])+10}" y="${Y(d.s[1])-10}" font-weight="700" fill="#1b6b35">(${d.s[0]}, ${d.s[1]})</text>`;
+return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Plano cartesiano">${g}</svg>`}
+function out(){const d=IV[iv];let h='';
+if(tl.tb)h+=`<table><tr><th>x</th><th>Recta 1</th><th>Recta 2</th><th></th></tr>${[0,1,2,3,4,5,6,7].map(x=>{const a=d.m[0][0]*x+d.m[0][1],b=d.m[1][0]*x+d.m[1][1];return `<tr><td>${x}</td><td>${a}</td><td>${b}</td><td>${a==b?'= ✔':''}</td></tr>`}).join('')}</table>`;
+if(tl.pt)h+=!(tl.g1&&tl.g2)?bx('hint','Primero grafica las dos rectas.'):d.n=='one'?bx('ok',`Las rectas se cortan en (${d.s[0]}, ${d.s[1]}).`):d.n=='none'?bx('info','No hay punto de intersección: las rectas son paralelas.'):bx('info','Las rectas coinciden: todos los puntos son comunes.');
+if(tl.vf)h+=d.n=='one'?bx('ok','Reemplazamos (x, y) = ('+d.s+'):<br>'+d.m.map(([m,b],j)=>`${d.e[j]} → ${d.s[1]} = ${m*d.s[0]+b} ✔`).join('<br>')):d.n=='none'?bx('info','No existe un par que cumpla ambas: igualando se obtendría 2x + 1 = 2x − 3, es decir 1 = −3, imposible.'):bx('info','Prueba con (1, 3): 1 + 3 = 4 ✔ y 2(1) + 2(3) = 8 ✔. Cualquier punto de la recta sirve.');
+return h}
+function r3(){r3a();if(iv==IV.length-1&&an.q1&&an.q2)$('t3').insertAdjacentHTML('beforeend','<div class="card"><button class="btn or" onclick="go(5)">Avanzar a la siguiente pestaña ▶</button></div>')}
+function r3a(){const d=IV[iv];
+$('t3').innerHTML=`<div class="card"><h3>🔍 Modo Investigar</h3>${bx('info','Elige un sistema, activa las herramientas y responde las preguntas.')}
+${IV.map((x,i)=>`<button class="btn ${i==iv?'on':'gr'}" onclick="iv=${i};tl={};an={};r3()">${x.c}</button>`).join('')}
+<div class="sys">${d.e.map((e,i)=>`<div>Recta ${i+1}: ${e}</div>`).join('')}</div>${d.t?bx('info','<b>Situación:</b> '+d.t):''}</div>
+<div class="iv"><div class="card">${sv()}<small>Recta 1: línea gruesa continua (azul) · Recta 2: línea discontinua (naranja)</small></div>
+<div class="card"><h4>🛠 Herramientas disponibles</h4>${TL.map(([k,n])=>`<button class="btn ${tl[k]?'on':'gr'}" aria-pressed="${!!tl[k]}" onclick="tl['${k}']=!tl['${k}'];r3()">${tl[k]?'✔ ':''}${n}</button>`).join('')}${out()}</div></div>
+<div class="card"><h4>❓ ¿Cuántas soluciones tiene?</h4>${[['one','Una solución'],['none','Ninguna solución'],['inf','Infinitas soluciones']].map(([k,n])=>`<button class="btn gr" onclick="a1('${k}')">${n}</button>`).join('')}${an.q1||''}
+${d.t?`<h4>❓ ¿Qué significa el punto (6, 16) en esta situación?</h4>${Q2.map((o,i)=>`<button class="opt" style="font-family:inherit" onclick="a2(${i})">${o[0]}</button>`).join('')}${an.q2||''}`:''}</div>
+<div class="card"><h4>📖 Glosario de apoyo</h4><details><summary>Incógnita</summary>Valor desconocido que se representa con una letra (x, y, p, q…).</details><details><summary>Sistema de ecuaciones</summary>Dos o más ecuaciones que deben cumplirse al mismo tiempo.</details><details><summary>Solución del sistema</summary>Par (x, y) que hace verdaderas todas las ecuaciones.</details><details><summary>Punto de intersección</summary>Punto donde se cruzan las rectas; sus coordenadas son la solución.</details><details><summary>Rectas paralelas</summary>Rectas con la misma pendiente que nunca se cruzan: el sistema no tiene solución.</details></div>`}
+function a1(k){const d=IV[iv],c={one:'Una solución significa que las rectas se cortan en exactamente un punto.',none:'Ninguna solución significa que las rectas nunca se tocan.',inf:'Infinitas soluciones significa que las rectas coinciden por completo.'};
+if(k==d.n)IVD[iv]=1;an.q1=k==d.n?bx('ok','¡Correcto! '+NX[d.n]):bx('err',c[k]+' Activa las herramientas y comprueba si eso ocurre aquí.');r3()}
+function a2(i){an.q2=Q2[i][1]?bx('ok','¡Correcto! En x = 6 kg ambas tarifas dan 2(6) + 4 = 16 y 6 + 10 = 16. Antes de 6 kg conviene el primero; después, el segundo.'):bx('err',Q2[i][2]);r3()}
+
+/* ---------- Clasificar métodos ---------- */
+const CM=[['y = 2x','x + y = 9','s','y ya está despejada (y = 2x): se reemplaza en la otra ecuación.'],['y = 3x − 2','y = x + 4','i','las dos ecuaciones tienen y despejada: se igualan.'],['x + y = 10','x − y = 2','r','los coeficientes de y son +1 y −1: al sumar se elimina y.'],['3x + 2y = 12','3x − 2y = 0','r','los coeficientes de y son +2 y −2: al sumar se elimina y (queda 6x = 12).'],['x = 2y','x + y = 12','s','x ya está despejada (x = 2y): se reemplaza en la otra ecuación.'],['y = x + 1','y = 2x − 2','i','las dos tienen y despejada: se igualan x + 1 = 2x − 2.']];
+const TP={s:'tener una incógnita ya despejada para reemplazarla',i:'tener la misma incógnita despejada en las dos ecuaciones',r:'tener coeficientes iguales u opuestos para eliminar una incógnita'};
+const K={sel:null,done:{},msg:'',q:CM.map(()=>Q())};
+function r4(){const n=Object.keys(K.done).length;
+$('t4').innerHTML=`<div class="card"><h3>🗂️ Clasificar métodos</h3>${bx('info','Arrastra cada sistema a la vitrina del método más conveniente. En celular: toca la tarjeta y luego la vitrina.')}<p><b>Completadas: ${n} / 6</b></p>
+${CM.map((c,i)=>K.done[i]?'':`<button class="opt ${K.sel===i?'sel':''}" draggable="true" ondragstart="K.sel=${i}" onclick="K.sel=${i};r4()">${'abcdef'[i]}) ${c[0]}<br>${c[1]}</button>`).join('')}${K.msg}
+<div class="vit">${['s','i','r'].map(m=>`<div class="vt" ondragover="event.preventDefault()" ondrop="put('${m}')" onclick="put('${m}')"><h4>${MN[m]}</h4>${CM.map((c,i)=>K.done[i]==m?`<div class="b ok">✅ ${'abcdef'[i]}) ${c[0]} ; ${c[1]}</div>`:'').join('')}</div>`).join('')}</div>
+${n==6?bx('ok','¡Clasificaste los 6 sistemas! Incógnita despejada: sustitución o igualación; coeficientes iguales u opuestos: reducción.')+'<button class="btn or" onclick="go(3)">Avanzar a la siguiente pestaña ▶</button>':''}</div>`}
+function put(m){const i=K.sel;if(i===null||K.done[i]!==undefined){K.msg=bx('hint','Primero elige una tarjeta: tócala o arrástrala.');return r4()}
+const c=CM[i];if(m==c[2]){K.done[i]=m;good(K.q[i]);K.msg=bx('ok',`¡Correcto! ${MN[m]} es el más conveniente porque ${c[3]}`)}else{bad(K.q[i]);K.msg=bx('err',`No es la mejor opción: con ${MN[m]} conviene ${TP[m]}. Revisa el sistema y prueba otra vitrina.`)}K.sel=null;r4()}
+
+/* ---------- Comparar y Explicar ---------- */
+const MC=[['Con 6 kg ambos transportistas cobran S/ 16.',1,'¡Correcto! Con x = 6 kg: 2(6) + 4 = 16 y 6 + 10 = 16.'],['Con 16 kg ambos cobran S/ 6.',0,'Intercambiaste las coordenadas: en (6, 16), x = 6 son los kg y y = 16 son los soles.'],['El primer transportista siempre cobra menos.',0,'Con 1 kg cobra menos (S/ 6 frente a S/ 11), pero con 10 kg cobra más (S/ 24 frente a S/ 20). No es siempre.'],['Las rectas no tienen ningún punto en común.',0,'Sí tienen uno: (6, 16) es justo donde se cortan.']];
+const ES=[['B','2x + 2y = 20','x − y = 2',(x,y)=>[[2*x+2*y,20],[x-y,2]],1,'La 1.ª ecuación de B es la de A multiplicada por 2 y la 2.ª es igual: se conserva la solución (6, 4).'],['C','x + y = 10','2x − y = 8',(x,y)=>[[x+y,10],[2*x-y,8]],1,'(6, 4) cumple C: 6 + 4 = 10 y 2(6) − 4 = 8. Con la misma única solución, son equivalentes.'],['D','x + y = 10','x − y = 4',(x,y)=>[[x+y,10],[x-y,4]],0,'(6, 4) no cumple D: 6 − 4 = 2, no 4. La solución de D es (7, 3). No son equivalentes.']];
+const MS=[['Sustitución vs. Igualación','Compara y = 2x ; x + y = 9 (sustitución) con y = 3x − 2 ; y = x + 4 (igualación): ¿qué se hace con la expresión de y en cada caso?','Se parecen en que ambos llegan a una ecuación con una sola incógnita y parten de una y despejada. Se diferencian en que la sustitución reemplaza y en la otra ecuación y la igualación iguala las dos expresiones de y.'],['Sustitución vs. Reducción','Compara y = 2x ; x + y = 9 (sustitución) con x + y = 10 ; x − y = 2 (reducción): ¿cómo se consigue una sola incógnita?','Se parecen en que buscan una ecuación con una sola incógnita. Se diferencian en que la sustitución reemplaza una incógnita despejada y la reducción suma o resta las ecuaciones para eliminarla.']];
+const C1=Q(),E2=ES.map(()=>({q:Q(),v:0,t:'',d:0,fb:''}));let m1='',mk=-1,mt=['',''];
+function r6(){r6a();if(C1.d&&E2.every(e=>e.d))$('t5').insertAdjacentHTML('beforeend','<div class="card"><button class="btn or" onclick="go(6)">Avanzar a la siguiente pestaña ▶</button></div>')}
+function r6a(){$('t5').innerHTML=`<div class="card"><h3>⚖️ Comparar y Explicar</h3>${bx('info','Tres partes: interpreta un punto, decide si dos sistemas son equivalentes y compara métodos.')}<h4>Parte 1</h4><p>Las rectas y = 2x + 4 y y = x + 10 se cortan en (6, 16). ¿Qué afirmación es correcta?</p>${MC.map((o,i)=>`<button class="opt" style="font-family:inherit" onclick="m1pick(${i})">${'ABCD'[i]}) ${o[0]}</button>`).join('')}${m1}</div>
+<div class="card"><h4>Parte 2: ¿Son equivalentes?</h4><div class="sys"><div>Sistema A: x + y = 10</div><div>x − y = 2</div></div>${ES.map((e,i)=>{const t=E2[i];return `<div class="card" style="box-shadow:none;border:1px solid #c5d3e6"><b>Sistema ${e[0]}:</b> ${e[1]} ; ${e[2]}<br><button class="btn gr" onclick="E2[${i}].v=1;r6()">Verificar (6, 4)</button>${t.v?bx('info',e[3](6,4).map((p,j)=>`Ecuación ${j+1}: ${p[0]} ${p[0]==p[1]?'= '+p[1]+' ✔':'≠ '+p[1]+' ✘'}`).join('<br>')):''}<br><button class="btn" ${t.d?'disabled':''} onclick="eqp(${i},1)">Equivalente</button><button class="btn" ${t.d?'disabled':''} onclick="eqp(${i},0)">No equivalente</button><br>Justifica: <textarea rows="2" oninput="E2[${i}].t=this.value">${t.t}</textarea>${t.fb}</div>`}).join('')}</div>
+<div class="card"><h4>Parte 3: Comparador de métodos</h4>${MS.map((m,i)=>`<button class="btn ${mk==i?'on':'gr'}" onclick="mk=${i};r6()">${m[0]}</button>`).join('')}${mk<0?'':bx('info','<b>Pregunta de análisis:</b> '+MS[mk][1])+bx('hint','Se parecen en que ... y se diferencian en que ...')+`<textarea rows="4" oninput="mt[${mk}]=this.value">${mt[mk]}</textarea><details><summary>Ver respuesta modelo</summary>${MS[mk][2]}</details>`}</div>`}
+function m1pick(i){const o=MC[i];if(o[1]){good(C1);m1=bx('ok',o[2])}else{bad(C1);m1=bx('err',o[2]+' Intenta de nuevo.')}r6()}
+function eqp(i,v){const e=ES[i],t=E2[i];if(!t.t.trim()){t.fb=bx('hint','Escribe primero una justificación breve.');return r6()}
+if(v==e[4]){good(t.q);t.d=1;t.v=1;t.fb=bx('ok','¡Correcto! <b>Justificación modelo:</b> '+e[5])}else{bad(t.q);t.v=1;t.fb=bx('err','Mira la verificación de (6, 4) en el sistema '+e[0]+': '+(e[4]?'cumple las dos ecuaciones y tiene la misma solución que A.':'no cumple la 2.ª ecuación.')+' Reintenta.')}r6()}
+
+/* ---------- Reto Final ---------- */
+const RF=[{t:'Un cliente compra 2 kg de papa y 3 kg de choclo por S/ 21; otro compra 4 kg de papa y 1 kg de choclo por S/ 17.',v:['p','c'],u:'p = precio del kg de papa (S/); c = precio del kg de choclo (S/).',o:[['3p + 2c = 21','p + 4c = 17','Intercambiaste los coeficientes: los 2 kg son de papa (2p) y los 3 kg de choclo (3c).'],['2p + 3c = 21','4p + c = 17',''],['2p + 3c = 21','4p + 3c = 17','En la 2.ª compra solo hay 1 kg de choclo (c), no 3 kg.']],s:[3,5],c:'2(3) + 3(5) = 21 y 4(3) + 5 = 17. Papa: S/ 3 el kg; choclo: S/ 5 el kg.'},
+{t:'En un puesto de truchas se sirvieron 20 platos entre trucha frita (S/ 15) y trucha al ajo (S/ 12); se recaudó S/ 258.',v:['f','a'],u:'f = platos de trucha frita; a = platos de trucha al ajo.',o:[['f + a = 258','15f + 12a = 20','Intercambiaste los totales: 20 son los platos y S/ 258 el dinero.'],['f + a = 20','12f + 15a = 258','Intercambiaste los precios: la frita cuesta S/ 15 y la al ajo S/ 12.'],['f + a = 20','15f + 12a = 258','']],s:[6,14],c:'6 + 14 = 20 y 15(6) + 12(14) = 90 + 168 = 258. Fueron 6 platos de trucha frita y 14 al ajo.'},
+{t:'Dos camiones de Chupaca: el primero cobra S/ 20 fijos más S/ 3 por caja y el segundo S/ 50 fijos más S/ 1 por caja. ¿Con cuántas cajas (x) cobran lo mismo (y)?',v:['x','y'],u:'x = número de cajas; y = costo en soles.',o:[['y = 3x + 20','y = 50x + 1','En la 2.ª ecuación el S/ 50 es el costo fijo (se suma) y el S/ 1 multiplica a x.'],['y = 3x − 20','y = x + 50','El costo fijo se suma: es 3x + 20, no 3x − 20.'],['y = 3x + 20','y = x + 50','']],s:[15,65],c:'3(15) + 20 = 65 y 15 + 50 = 65. Con 15 cajas ambos cobran S/ 65.'},
+{t:'María vende 18 kg entre queso fresco y habas. El queso pesa 4 kg más que las habas.',v:['q','h'],u:'q = kg de queso fresco; h = kg de habas.',o:[['q + h = 18','q − h = 4',''],['q + h = 18','h − q = 4','Invertiste la diferencia: el queso es el mayor, así que q − h = 4.'],['q + h = 18','q + h = 4','Usaste suma en lugar de diferencia: “4 kg más” se expresa con q − h = 4.']],s:[11,7],c:'11 + 7 = 18 y 11 − 7 = 4. Queso: 11 kg; habas: 7 kg.'}];
+const RS=RF.map(()=>({st:0,q:[Q(),Q()],vx:'',vy:'',fb:'',e:[0,0],hi:0}));let cr=0,RJ=['',''],RD=0;
+function r7(){if(RD==1)return fin();const s=RF[cr],t=RS[cr];
+let h=`<div class="card"><h3>🏆 Reto Final: sistema ${cr+1} de 4</h3>${bx('info','Plantea el sistema y luego resuélvelo con el método que prefieras.')}<p><b>${s.t}</b></p><h4>1) Plantea el sistema</h4>${s.o.map((o,i)=>`<button class="opt" ${t.st>0?'disabled':''} onclick="rp(${i})">${o[0]}<br>${o[1]}</button>`).join('')}`;
+if(t.st>0)h+=(t.lk?'':bx('ok','Sistema bien planteado. '+s.u))+`<h4>2) Resuelve y escribe los valores</h4><label>${s.v[0]} = <input class="n" inputmode="numeric" value="${t.vx}" ${t.st>1?'disabled':''} oninput="RS[cr].vx=this.value"></label><label>${s.v[1]} = <input class="n" inputmode="numeric" value="${t.vy}" ${t.st>1?'disabled':''} oninput="RS[cr].vy=this.value"></label><button class="btn" onclick="rc()" ${t.st>1?'disabled':''}>Comprobar</button>`;
+h+=t.fb+(t.hi?bx('hint',t.st?'Si una incógnita está despejada, sustituye o iguala; si no, suma o resta las ecuaciones.':'Cada ecuación une cantidades con su total; no mezcles los datos de cada compra.'):'')+`<div><button class="btn gr" onclick="RS[cr].hi=1;RS[cr].q[Math.min(RS[cr].st,1)].h=1;r7()" ${t.st>1?'disabled':''}>💡 Pedir pista</button>${t.st>1&&cr<3?'<button class="btn" onclick="cr++;r7()">Siguiente sistema ▶</button>':''}</div></div>`;
+if(RS.every(x=>x.st>1)){h+=`<div class="card"><h3>✍️ Justifica tu método</h3>${[0,1].map(j=>`<p><b>Sistema ${j?3:1}: ¿Por qué elegiste ese método?</b></p><textarea rows="3" oninput="RJ[${j}]=this.value">${RJ[j]}</textarea>`).join('')}<button class="btn or" onclick="rd()">Finalizar</button><button class="btn gr" onclick="rst()">🔄 Volver a intentar</button>${RD==2?bx('hint','Escribe las dos justificaciones.'):''}</div>`;
+}
+$('t6').innerHTML=h}
+function rd(){RD=RJ[0].trim()&&RJ[1].trim()?1:2;r7()}
+function rp(i){const s=RF[cr],t=RS[cr],o=s.o[i];if(t.st>0)return;if(!o[2]){good(t.q[0]);t.st=1;t.fb=''}else{bad(t.q[0]);t.e[0]++;if(t.e[0]>=2){t.st=1;t.lk=1;const c=s.o.find(z=>!z[2]);t.fb=bx('err',o[2]+' Agotaste tus 2 intentos.')+bx('ok',`<b>Respuesta correcta:</b> ${c[0]} ; ${c[1]}<br>${s.u}`)+bx('info','<b>Explicación:</b> '+RX[cr])}else t.fb=bx('err',o[2]+' Te queda 1 intento.')}r7()}
+function rc(){const s=RF[cr],t=RS[cr];if(t.vx===''||t.vy===''){t.fb=bx('err','Escribe los dos valores.');return r7()}const x=Number(t.vx),y=Number(t.vy);
+if(x==s.s[0]&&y==s.s[1]){good(t.q[1]);t.st=2;t.fb=bx('ok',`¡Correcto! Verificación: ${s.c}`)}
+else{bad(t.q[1]);t.e[1]++;t.fb=bx('err',(x==s.s[1]&&y==s.s[0]?'Parece que intercambiaste los valores.':(x==s.s[0]||y==s.s[1])?'Uno de los valores está bien: reemplázalo en una ecuación para hallar el otro.':'Reemplaza tus valores en AMBAS ecuaciones: no se cumplen.')+' Reintenta.')}r7()}
+
+
+/* ---------- Refinamientos 6 y 7 ---------- */
+const RX=['Cada compra da una ecuación: 2 kg de papa y 3 kg de choclo cuestan S/ 21 (2p + 3c = 21) y 4 kg de papa y 1 kg de choclo cuestan S/ 17 (4p + c = 17).','Hay un total de platos (f + a = 20) y un total de dinero (15f + 12a = 258).','Cada camión cobra su costo fijo más lo que cuesta cada caja: y = 3x + 20 y y = x + 50.','Hay una suma de kilos (q + h = 18) y una diferencia (q − h = 4).'];
+const IVD={};
+function fin(){const L=[['Reto & Ejemplo',`${ej} / ${EJ.length} pasos vistos`],['Nivel 1',`${T1.filter(x=>x.d).length} / 3`],['Nivel 2',`${T2.filter(x=>x.st>2).length} / 4`],['Clasificar métodos',`${Object.keys(K.done).length} / 6`],['Modo Investigar',`${Object.keys(IVD).length} / ${IV.length}`],['Comparar y Explicar',`${(C1.d?1:0)+E2.filter(x=>x.d).length} / 4`],['Reto Final',`${RS.filter(x=>x.st>1).length} / 4`]],n2=['elegir el método','ordenar los pasos','calcular y verificar x e y'],rv=[];
+if(T1.some(x=>x.q.e||x.q.h))rv.push('plantear el sistema desde la situación (Nivel 1)');
+[0,1,2].filter(k=>T2.some(x=>x.q[k].e||x.q[k].h)).forEach(k=>rv.push(n2[k]+' (Nivel 2)'));
+if(K.q.some(x=>x.e))rv.push('elegir el método más conveniente (Clasificar métodos)');
+if(C1.e||E2.some(x=>x.q.e))rv.push('interpretar la intersección y la equivalencia de sistemas (Comparar y Explicar)');
+if(RS.some(x=>x.e[0]))rv.push('plantear sistemas (Reto Final)');
+if(RS.some(x=>x.e[1]))rv.push('resolver y verificar en ambas ecuaciones (Reto Final)');
+$('t6').innerHTML=`<div class="card"><h2>🏁 Resumen de logros</h2><p>Actividades completadas por pestaña:</p>${L.map(([a,b])=>`<div class="b info">📌 ${a}: <b>${b}</b></div>`).join('')}<p>🥇 Acierto al primer intento: <b>${S.first}</b> · 💡 Con uso de pista: <b>${S.hint}</b> · 🔁 Intentos adicionales: <b>${S.extra}</b></p><h4>Sistemas resueltos en el Reto Final</h4>${RF.map((x,i)=>`<div class="b ok">✅ Sistema ${i+1}: ${x.v[0]} = ${x.s[0]}, ${x.v[1]} = ${x.s[1]}</div>`).join('')}${rv.length?bx('hint','<b>Conviene repasar:</b> '+rv.join('; ')+'.'):bx('ok','¡Excelente! No cometiste errores ni necesitaste pistas.')}${bx('info','¡Felicitaciones por llegar al final de La feria de los sistemas! Ya sabes plantear, resolver e interpretar sistemas 2×2.')}<button class="btn or" onclick="rst()">🔄 Volver a intentar</button></div>`}
+function rst(){location.reload()}
+
+stats();r0();r1();r2();r3();r4();r6();r7();go(0);
+</script></body></html>
